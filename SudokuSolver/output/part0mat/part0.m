@@ -1,0 +1,10 @@
+image = imread('Warmup.tif');
+%level = graythresh(image);
+A = im2bw(image,0.5);
+figure, imshow(A);
+e1 = imfill(A,'holes');
+figure, imshow(e1);
+x1 = xor(e1,A);
+%imshow(x1);
+x1 = ~x1;
+figure, imshow(x1);

@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 8.6.9">
+<title>HCI/CprE/ComS 575: Homework #2</title>
+<link rel="stylesheet" href="./riak.css" type="text/css">
+
+
+</head>
+<body class="article">
+<div id="header">
+<h1>HCI/CprE/ComS 575: Homework #2</h1>
+
+
+<!-- MAKE CHANGES HERE: Student information -->
+<span id="author">Geethanjali Jeevanatham</span><br>
+<span id="email" class="monospaced">&lt;<a href="mailto:Your Email">geetha91@iastate.edu</a>&gt;</span><br>
+<!-- END CHANGES -->
+
+
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>Supplementary images files for this homework are also posted on <a href="http://www.ece.iastate.edu/~alexs/classes/2016_Spring_575/HW/HW2">the class website</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_0">Part 0</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Use basic morphological operations to produce two images: one containing just the grid and one containing just the numbers.
+Solve this problem using both MATLAB <strong>and</strong> OpenCV.</p></div>
+<div class="sect2">
+<h3 id="_matlab">Matlab</h3>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="0_Warmup/Warmup.JPG" alt="Original" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 0 MATLAB grid -->
+<img src="output/part0mat/part0res1mat.jpg" alt="Grid" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 0 MATLAB numbers -->
+<img src="output/part0mat/part0res2mat.jpg" alt="Numbers" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 0 MATLAB code -->
+<pre>
+% Part 0 Code
+
+image = imread('Warmup.tif');
+A = im2bw(image,0.5);
+figure, imshow(A);
+e1 = imfill(A,'holes'); 
+figure, imshow(e1); %generates the grid
+x1 = xor(e1,A);
+x1 = ~x1;
+figure, imshow(x1); %generates the numbers
+
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_opencv">OpenCV</h3>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="0_Warmup/Warmup1.JPG" alt="Original" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 0 OpenCV grid -->
+<img src="output/part0opencv/part0res2opencv.png" alt="Grid" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 0 OpenCV numbers -->
+<img src="output/part0opencv/part0res1opencv.png" alt="Numbers" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 0 OpenCV code -->
+<pre>
+	<xmp>
+// Part 0 opencv code
+
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, const char * argv[]) {
+    
+    Mat img = imread("../../Warmup1.JPG");
+    
+    if(img.empty()){
+        cout<<"Error: Image cannot be loaded"<<endl;
+        return -1;
+    }
+    
+    namedWindow("myWindow",CV_WINDOW_AUTOSIZE);
+    imshow("myWindow",img);                       //Displays original image
+    
+    Mat dest(img.size(),img.type());
+    threshold(img, dest, 255*0.5, 255, THRESH_BINARY);
+    
+    Mat erode_dest(dest.size(),dest.type());
+    Mat element = getStructuringElement(MORPH_RECT, Size(3,3));
+    erode(dest, erode_dest, element);
+    
+    
+    Mat im_floodfill = erode_dest.clone();
+    floodFill(im_floodfill, Point(0,0), CV_RGB(255,255,255));
+    
+    Mat im_floodfill_inv;
+    dilate(im_floodfill,im_floodfill,element);
+    bitwise_not(im_floodfill, im_floodfill_inv);
+    Mat im_out = (dest|im_floodfill_inv);
+    threshold(im_out, im_out, 255*0.5, 255, THRESH_BINARY);
+    namedWindow("myWindow2",CV_WINDOW_AUTOSIZE);
+    imshow("myWindow2",im_floodfill);                  //Displays the numbers
+    
+    namedWindow("myWindowErode",CV_WINDOW_AUTOSIZE);
+    imshow("myWindowErode",im_out);                    //Displays the grids
+    
+    waitKey(0);
+    
+    destroyWindow("myWindow");
+    
+    return 0;
+}
+</xmp>
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_1">Part 1</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Write a program that can find the individual cells in an empty Sudoku grid.
+The program should highlight the cells, e.g., by filling them with different colors.
+If you can do the last image you&#8217;ll get some extra credit.
+Solve this and all subsequent problems using either MATLAB <strong>or</strong> OpenCV.</p></div>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="1_Grid/SudokuGrid1.jpg" alt="1_Grid/SudokuGrid1.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="1_Grid/SudokuGrid2.jpg" alt="1_Grid/SudokuGrid2.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="1_Grid/SudokuGrid3.jpg" alt="1_Grid/SudokuGrid3.jpg" width="100%">
+</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 1 image 1 -->
+<img src="output/part1/part1res1.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 1 image 2 -->
+<img src="output/part1/part1res2.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 1 image 3 -->
+<img src="output/part1/part1res3.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 1 code -->
+<pre>
+// Part 1 matlab code
+
+a=imread('SudokuGrid3.jpg');
+b=im2bw(a,0.5);
+bi=~b;
+whitebg([1 1 1]);
+bi = medfilt2(bi);
+bi = medfilt2(bi);
+c = fspecial('average');
+bi = imfilter(bi,c);
+bi = imfilter(bi,c);
+
+se=strel('square',30);
+d1=imdilate(bi,se);
+d2=~d1;
+[L,num]= bwlabel(d2);
+a1=label2rgb(L);
+imshow(a1);
+figure, imshow(a);
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_2">Part 2</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Extend your program to find the locations of all the numbers in the puzzle.
+Highlight the numbers in red in the result images.
+Also print the puzzle on the screen using ASCII characters.
+There are computer-generated images that don&#8217;t have any noise.</p></div>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="2_Computer_Generated/sudoku1.jpg" alt="2_Computer_Generated/sudoku1.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="2_Computer_Generated/sudoku2.jpg" alt="2_Computer_Generated/sudoku2.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="2_Computer_Generated/sudoku3.jpg" alt="2_Computer_Generated/sudoku3.jpg" width="100%">
+</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 2 image 1 -->
+<img src="output/part2/part2res1.jpg" alt="output/part2/part2res1.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 2 image 2 -->
+<img src="output/part2/part2res2.jpg" alt="output/part2/part2res2.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 2 image 3 -->
+<img src="output/part2/part2res3.jpg" alt="output/part2/part2res3.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 2 code -->
+<pre>
+// Part 2, 3 and 4 are the same code that works for all the three parts, code is in matlab
+
+image = imread('sudoku1.jpg');
+image = im2bw(image,0.5);
+im1 = ~image;
+image = imclearborder(image);
+
+
+med = medfilt2(image);
+
+se = strel('square',8);
+u1 = imclearborder(med);
+u1 = imerode(u1,se);
+u1 = imclearborder(u1);
+u = imfill(u1,'holes');
+u = imdilate(u,se);
+
+med = xor(u,med);
+se1 = strel('square',3);
+c = fspecial('average');
+med = imfilter(med,c);
+med = imfilter(med,c);
+med = imdilate(med,se1);
+
+location=zeros(9,9);
+
+i1 = imread('1.jpg');
+i1 = im2bw(i1,0.5);
+i1 = ~i1;
+imshow(i1);
+
+i2 = imread('2.jpg');
+i2 = im2bw(i2,0.5);
+i2 = ~i2;
+
+
+i3 = imread('3.jpg');
+i3 = im2bw(i3,0.5);
+i3 = ~i3;
+
+i4 = imread('4.jpg');
+i4 = im2bw(i4,0.5);
+i4 = ~i4;
+
+i5 = imread('5.jpg');
+i5 = im2bw(i5,0.5);
+i5 = ~i5;
+
+i6 = imread('6.jpg');
+i6 = im2bw(i6,0.5);
+i6 = ~i6;
+
+i7 = imread('7.jpg');
+i7 = im2bw(i7,0.5);
+i7 = ~i7;
+
+i8 = imread('8.jpg');
+i8 = im2bw(i8,0.5);
+i8 = ~i8;
+
+i9 = imread('9.jpg');
+i9 = im2bw(i9,0.5);
+i9 = ~i9;
+
+b = fspecial('average');
+
+a1 = medfilt2(i1);
+a1 = imfilter(a1,b);
+a1 = imfilter(a1,b);
+
+a2 = medfilt2(i2);
+a2 = imfilter(a2,b);
+a2 = imfilter(a2,b);
+
+a3 = medfilt2(i3);
+a3 = imfilter(a3,b);
+a3 = imfilter(a3,b);
+
+a4 = medfilt2(i4);
+a4 = imfilter(a4,b);
+a4 = imfilter(a4,b);
+
+a5 = medfilt2(i5);
+a5 = imfilter(a5,b);
+a5 = imfilter(a5,b);
+
+a6 = medfilt2(i6);
+a6 = imfilter(a6,b);
+a6 = imfilter(a6,b);
+
+a7 = medfilt2(i7);
+a7 = imfilter(a7,b);
+a7 = imfilter(a7,b);
+
+a8 = medfilt2(i8);
+a8 = imfilter(a8,b);
+a8 = imfilter(a8,b);
+
+a9 = medfilt2(i9);
+a9 = imfilter(a9,b);
+a9 = imfilter(a9,b);
+
+e1 = imerode(med,a1);
+e1 = imclearborder(e1);
+d1 = imdilate(e1,a1);
+
+e2 = imerode(med,a2);
+e2 = imclearborder(e2);
+d2 = imdilate(e2,a2);
+
+e3 = imerode(med,a3);
+e3 = imclearborder(e3);
+d3 = imdilate(e3,a3);
+
+e4 = imerode(med,a4);
+e4 = imclearborder(e4);
+d4 = imdilate(e4,a4);
+
+e5 = imerode(med,a5);
+e5 = imclearborder(e5);
+d5 = imdilate(e5,a5);
+
+e6 = imerode(med,a6);
+e6 = imclearborder(e6);
+d6 = imdilate(e6,a6);
+
+e7 = imerode(med,a7);
+e7 = imclearborder(e7);
+d7 = imdilate(e7,a7);
+
+e8 = imerode(med,a8);
+e8 = imclearborder(e8);
+d8 = imdilate(e8,a8);
+
+e9 = imerode(med,a9);
+e9 = imclearborder(e9);
+d9 = imdilate(e9,a9);
+
+
+imshow(im1);
+
+
+
+A1 = regionprops(e1,'Centroid');
+A2 = regionprops(e2,'Centroid');
+A3 = regionprops(e3,'Centroid');
+A4 = regionprops(e4,'Centroid');
+A5 = regionprops(e5,'Centroid');
+A6 = regionprops(e6,'Centroid');
+A7 = regionprops(e7,'Centroid');
+A8 = regionprops(e8,'Centroid');
+A9 = regionprops(e9,'Centroid');
+
+radii = 30;
+
+x1 = size(A1);
+x2 = size(A2);
+x3 = size(A3);
+x4 = size(A4);
+x5 = size(A5);
+x6 = size(A6);
+x7 = size(A7);
+x8 = size(A8);
+x9 = size(A9);
+
+
+l1 = size(image);
+width = floor(l1(1)/9);
+height = floor(l1(2)/9);
+
+for i = 1:x9(1)
+    centers = A9(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=9;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x8(1)
+    centers = A8(i).Centroid;
+   v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=8;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x7(1)
+    centers = A7(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=7;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x6(1)
+    centers = A6(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=6;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x5(1)
+    centers = A5(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=5;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x4(1)
+    centers = A4(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=4;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x3(1)
+    centers = A3(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=3;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x2(1)
+    centers = A2(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=2;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x1(1)
+    centers = A1(i).Centroid;
+      v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=1;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+
+figure, imshow(im1);
+location
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_3">Part 3</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This is similar to part 2 but these are scanned images that contain noise.
+You can crop small images for each digit and use them to create matching templates that your program can use to find the digits.
+(You can do this in part 2 as well).</p></div>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="3_Scanned/ScannedPuzzle1.jpg" alt="3_Scanned/ScannedPuzzle1.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="3_Scanned/ScannedPuzzle2.jpg" alt="3_Scanned/ScannedPuzzle2.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="3_Scanned/ScannedPuzzle3.jpg" alt="3_Scanned/ScannedPuzzle3.jpg" width="100%">
+</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 3 image 1 -->
+<img src="output/part3/part3res1.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 3 image 2 -->
+<img src="output/part3/part3res2.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 3 image 3 -->
+<img src="output/part3/part3res3.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 3 code -->
+<pre>
+// Part 3 code same as part 2 code
+
+image = imread('ScannedPuzzle3.jpg');
+image = im2bw(image,0.5);
+im1 = ~image;
+image = imclearborder(image);
+
+
+med = medfilt2(image);
+
+se = strel('square',8);
+u1 = imclearborder(med);
+u1 = imerode(u1,se);
+u1 = imclearborder(u1);
+u = imfill(u1,'holes');
+u = imdilate(u,se);
+
+med = xor(u,med);
+se1 = strel('square',3);
+c = fspecial('average');
+med = imfilter(med,c);
+med = imfilter(med,c);
+med = imdilate(med,se1);
+
+location=zeros(9,9);
+
+i1 = imread('numbers3/1.jpg');
+i1 = im2bw(i1,0.5);
+i1 = ~i1;
+imshow(i1);
+
+i2 = imread('numbers3/2.jpg');
+i2 = im2bw(i2,0.5);
+i2 = ~i2;
+
+
+i3 = imread('numbers3/3.jpg');
+i3 = im2bw(i3,0.5);
+i3 = ~i3;
+
+i4 = imread('numbers3/4.jpg');
+i4 = im2bw(i4,0.5);
+i4 = ~i4;
+
+i5 = imread('numbers3/5.jpg');
+i5 = im2bw(i5,0.5);
+i5 = ~i5;
+
+i6 = imread('numbers3/6.jpg');
+i6 = im2bw(i6,0.5);
+i6 = ~i6;
+
+i7 = imread('numbers3/7.jpg');
+i7 = im2bw(i7,0.5);
+i7 = ~i7;
+
+i8 = imread('numbers3/8.jpg');
+i8 = im2bw(i8,0.5);
+i8 = ~i8;
+
+i9 = imread('numbers3/9.jpg');
+i9 = im2bw(i9,0.5);
+i9 = ~i9;
+
+b = fspecial('average');
+
+a1 = medfilt2(i1);
+a1 = imfilter(a1,b);
+a1 = imfilter(a1,b);
+
+a2 = medfilt2(i2);
+a2 = imfilter(a2,b);
+a2 = imfilter(a2,b);
+
+a3 = medfilt2(i3);
+a3 = imfilter(a3,b);
+a3 = imfilter(a3,b);
+
+a4 = medfilt2(i4);
+a4 = imfilter(a4,b);
+a4 = imfilter(a4,b);
+
+a5 = medfilt2(i5);
+a5 = imfilter(a5,b);
+a5 = imfilter(a5,b);
+
+a6 = medfilt2(i6);
+a6 = imfilter(a6,b);
+a6 = imfilter(a6,b);
+
+a7 = medfilt2(i7);
+a7 = imfilter(a7,b);
+a7 = imfilter(a7,b);
+
+a8 = medfilt2(i8);
+a8 = imfilter(a8,b);
+a8 = imfilter(a8,b);
+
+a9 = medfilt2(i9);
+a9 = imfilter(a9,b);
+a9 = imfilter(a9,b);
+
+e1 = imerode(med,a1);
+e1 = imclearborder(e1);
+d1 = imdilate(e1,a1);
+
+e2 = imerode(med,a2);
+e2 = imclearborder(e2);
+d2 = imdilate(e2,a2);
+
+e3 = imerode(med,a3);
+e3 = imclearborder(e3);
+d3 = imdilate(e3,a3);
+
+e4 = imerode(med,a4);
+e4 = imclearborder(e4);
+d4 = imdilate(e4,a4);
+
+e5 = imerode(med,a5);
+e5 = imclearborder(e5);
+d5 = imdilate(e5,a5);
+
+e6 = imerode(med,a6);
+e6 = imclearborder(e6);
+d6 = imdilate(e6,a6);
+
+e7 = imerode(med,a7);
+e7 = imclearborder(e7);
+d7 = imdilate(e7,a7);
+
+e8 = imerode(med,a8);
+e8 = imclearborder(e8);
+d8 = imdilate(e8,a8);
+
+e9 = imerode(med,a9);
+e9 = imclearborder(e9);
+d9 = imdilate(e9,a9);
+
+
+imshow(im1);
+
+
+
+A1 = regionprops(e1,'Centroid');
+A2 = regionprops(e2,'Centroid');
+A3 = regionprops(e3,'Centroid');
+A4 = regionprops(e4,'Centroid');
+A5 = regionprops(e5,'Centroid');
+A6 = regionprops(e6,'Centroid');
+A7 = regionprops(e7,'Centroid');
+A8 = regionprops(e8,'Centroid');
+A9 = regionprops(e9,'Centroid');
+
+radii = 30;
+
+x1 = size(A1);
+x2 = size(A2);
+x3 = size(A3);
+x4 = size(A4);
+x5 = size(A5);
+x6 = size(A6);
+x7 = size(A7);
+x8 = size(A8);
+x9 = size(A9);
+
+
+l1 = size(image);
+width = floor(l1(1)/9);
+height = floor(l1(2)/9);
+
+for i = 1:x9(1)
+    centers = A9(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=9;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x8(1)
+    centers = A8(i).Centroid;
+   v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=8;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x7(1)
+    centers = A7(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=7;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x6(1)
+    centers = A6(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=6;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x5(1)
+    centers = A5(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=5;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x4(1)
+    centers = A4(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=4;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x3(1)
+    centers = A3(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=3;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x2(1)
+    centers = A2(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=2;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x1(1)
+    centers = A1(i).Centroid;
+      v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=1;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+
+figure, imshow(im1);
+location
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_part_4">Part 4</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This is the same as part 3 but the font is different.
+You may have to generate new matching templates.</p></div>
+<table class="tableblock frame-all grid-all" style=" width:100%; ">
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="4_Scanned2/scanned1.jpg" alt="4_Scanned2/scanned1.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="4_Scanned2/scanned2.jpg" alt="4_Scanned2/scanned2.jpg" width="100%">
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+<img src="4_Scanned2/scanned3.jpg" alt="4_Scanned2/scanned3.jpg" width="100%">
+</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 4 image 1 -->
+<img src="output/part4/part4res1.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 4 image 2 -->
+<img src="output/part4/part4res2.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><span class="image">
+
+
+<!-- MAKE CHANGES HERE: Part 4 image 3 -->
+<img src="output/part4/part4res3.jpg" alt="output/placeholder.jpg" width="100%">
+<!-- END CHANGES -->
+
+
+</span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Source</div>
+<div class="content monospaced">
+
+
+<!-- MAKE CHANGES HERE: Part 4 code -->
+<pre>
+// Part 4 code same as part 2 and 3 code
+
+image = imread('scanned3.jpg');
+image = im2bw(image,0.5);
+im1 = ~image;
+image = imclearborder(image);
+
+
+med = medfilt2(image);
+
+se = strel('square',8);
+u1 = imclearborder(med);
+u1 = imerode(u1,se);
+u1 = imclearborder(u1);
+u = imfill(u1,'holes');
+u = imdilate(u,se);
+
+med = xor(u,med);
+se1 = strel('square',3);
+c = fspecial('average');
+med = imfilter(med,c);
+med = imfilter(med,c);
+med = imdilate(med,se1);
+
+location=zeros(9,9);
+
+i1 = imread('numbers4/1.jpg');
+i1 = im2bw(i1,0.5);
+i1 = ~i1;
+imshow(i1);
+
+i2 = imread('numbers4/2.jpg');
+i2 = im2bw(i2,0.5);
+i2 = ~i2;
+
+
+i3 = imread('numbers4/3.jpg');
+i3 = im2bw(i3,0.5);
+i3 = ~i3;
+
+i4 = imread('numbers4/4.jpg');
+i4 = im2bw(i4,0.5);
+i4 = ~i4;
+
+i5 = imread('numbers4/5.jpg');
+i5 = im2bw(i5,0.5);
+i5 = ~i5;
+
+i6 = imread('numbers4/6.jpg');
+i6 = im2bw(i6,0.5);
+i6 = ~i6;
+
+i7 = imread('numbers4/7.jpg');
+i7 = im2bw(i7,0.5);
+i7 = ~i7;
+
+i8 = imread('numbers4/8.jpg');
+i8 = im2bw(i8,0.5);
+i8 = ~i8;
+
+i9 = imread('numbers4/9.jpg');
+i9 = im2bw(i9,0.5);
+i9 = ~i9;
+
+b = fspecial('average');
+
+a1 = medfilt2(i1);
+a1 = imfilter(a1,b);
+a1 = imfilter(a1,b);
+
+a2 = medfilt2(i2);
+a2 = imfilter(a2,b);
+a2 = imfilter(a2,b);
+
+a3 = medfilt2(i3);
+a3 = imfilter(a3,b);
+a3 = imfilter(a3,b);
+
+a4 = medfilt2(i4);
+a4 = imfilter(a4,b);
+a4 = imfilter(a4,b);
+
+a5 = medfilt2(i5);
+a5 = imfilter(a5,b);
+a5 = imfilter(a5,b);
+
+a6 = medfilt2(i6);
+a6 = imfilter(a6,b);
+a6 = imfilter(a6,b);
+
+a7 = medfilt2(i7);
+a7 = imfilter(a7,b);
+a7 = imfilter(a7,b);
+
+a8 = medfilt2(i8);
+a8 = imfilter(a8,b);
+a8 = imfilter(a8,b);
+
+a9 = medfilt2(i9);
+a9 = imfilter(a9,b);
+a9 = imfilter(a9,b);
+
+e1 = imerode(med,a1);
+e1 = imclearborder(e1);
+d1 = imdilate(e1,a1);
+
+e2 = imerode(med,a2);
+e2 = imclearborder(e2);
+d2 = imdilate(e2,a2);
+
+e3 = imerode(med,a3);
+e3 = imclearborder(e3);
+d3 = imdilate(e3,a3);
+
+e4 = imerode(med,a4);
+e4 = imclearborder(e4);
+d4 = imdilate(e4,a4);
+
+e5 = imerode(med,a5);
+e5 = imclearborder(e5);
+d5 = imdilate(e5,a5);
+
+e6 = imerode(med,a6);
+e6 = imclearborder(e6);
+d6 = imdilate(e6,a6);
+
+e7 = imerode(med,a7);
+e7 = imclearborder(e7);
+d7 = imdilate(e7,a7);
+
+e8 = imerode(med,a8);
+e8 = imclearborder(e8);
+d8 = imdilate(e8,a8);
+
+e9 = imerode(med,a9);
+e9 = imclearborder(e9);
+d9 = imdilate(e9,a9);
+
+
+imshow(im1);
+
+
+
+A1 = regionprops(e1,'Centroid');
+A2 = regionprops(e2,'Centroid');
+A3 = regionprops(e3,'Centroid');
+A4 = regionprops(e4,'Centroid');
+A5 = regionprops(e5,'Centroid');
+A6 = regionprops(e6,'Centroid');
+A7 = regionprops(e7,'Centroid');
+A8 = regionprops(e8,'Centroid');
+A9 = regionprops(e9,'Centroid');
+
+radii = 30;
+
+x1 = size(A1);
+x2 = size(A2);
+x3 = size(A3);
+x4 = size(A4);
+x5 = size(A5);
+x6 = size(A6);
+x7 = size(A7);
+x8 = size(A8);
+x9 = size(A9);
+
+
+l1 = size(image);
+width = floor(l1(1)/9);
+height = floor(l1(2)/9);
+
+for i = 1:x9(1)
+    centers = A9(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=9;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x8(1)
+    centers = A8(i).Centroid;
+   v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=8;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x7(1)
+    centers = A7(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=7;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x6(1)
+    centers = A6(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=6;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x5(1)
+    centers = A5(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=5;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x4(1)
+    centers = A4(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=4;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x3(1)
+    centers = A3(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=3;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x2(1)
+    centers = A2(i).Centroid;
+    v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=2;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+for i = 1:x1(1)
+    centers = A1(i).Centroid;
+      v1 = ceil(centers(1,2)/height);
+      v2 = ceil(centers(1,1)/width);
+      if location(v1,v2) == 0
+         location(v1,v2)=1;
+         hold on
+         viscircles(centers,radii);
+         hold off
+      end
+end
+
+
+figure, imshow(im1);
+location
+</pre>
+<!-- END CHANGES -->
+
+
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_extra_credit">Extra Credit</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Extend your code to solve the puzzle and print its solution.</p></div>
+<div class="paragraph"><p><strong>Special Extra Credit:</strong> Write an application that can take in a picture of the daily Sudoku puzzle from your favorite newspaper and print the solution.
+(iPhone app anyone?)</p></div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2016-02-01 22:44:01 CST
+</div>
+</div>
+</body>
+</html>
+
